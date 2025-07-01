@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   SectionList,
   ActivityIndicator,
+  StatusBar,
   StyleSheet
 } from 'react-native'
 import { useDispatch, useSelector } from 'react-redux'
@@ -13,6 +14,7 @@ import { fetchMatchesByDate } from '../features/matches/matchesSlice'
 import { loadFollowed } from '../features/leagues/leaguesSlice'
 import MatchItem from '../components/MatchItem'
 import { format, addDays } from 'date-fns'
+import Icon from 'react-native-vector-icons/MaterialIcons'
 
 export default function MatchesScreen() {
   const dispatch      = useDispatch()
@@ -23,24 +25,26 @@ export default function MatchesScreen() {
 
   const dateStr = format(addDays(new Date(), dayOffset), 'yyyy-MM-dd')
 
-  // Load followed leagues once
+  // 1) Load your followed leagues once
   useEffect(() => {
     dispatch(loadFollowed())
   }, [])
 
-  // Fetch fixtures whenever the date changes
+  // 2) Fetch fixtures whenever the date changes
   useEffect(() => {
     setLoading(true)
     dispatch(fetchMatchesByDate(dateStr))
       .finally(() => setLoading(false))
   }, [dateStr])
 
+  // 3) Loader
   if (loading) {
     return (
-      <View style={styles.loaderContainer}>
+      <SafeAreaView style={styles.loaderContainer}>
+        <StatusBar backgroundColor="#fff" barStyle="dark-content" />
         <ActivityIndicator size="large" color="#007AFF" />
         <Text style={styles.loadingText}>Loading matches…</Text>
-      </View>
+      </SafeAreaView>
     )
   }
 
@@ -54,21 +58,36 @@ export default function MatchesScreen() {
     { title: 'All Leagues', data: allMatches }
   ]
 
-  const Header = () => (
-    <View style={styles.headerContainer}>
+  // ——— Top App Bar ———
+  const AppBar = () => (
+    <View style={styles.appBar}>
+      <Text style={styles.logoText}>FOTMOB</Text>
+      <View style={styles.appBarIcons}>
+        <Icon name="schedule"          size={24} style={styles.icon} />
+        <Icon name="calendar-today"    size={24} style={styles.icon} />
+        <Icon name="search"            size={24} style={styles.icon} />
+        <Icon name="more-vert"         size={24} style={styles.icon} />
+      </View>
+    </View>
+  )
+
+  // ——— Tab Bar ———
+  const TabBar = () => (
+    <View style={styles.tabBar}>
       {[-1, 0, 1].map(offset => {
-        const label = offset === -1 ? 'Yesterday'
-                     : offset === 0 ? 'Today'
-                     : 'Tomorrow'
+        const label = offset === -1
+          ? 'Yesterday'
+          : offset === 0
+            ? 'Today'
+            : 'Tomorrow'
+        const active = offset === dayOffset
         return (
           <TouchableOpacity
             key={offset}
+            style={[styles.tabButton, active && styles.tabButtonActive]}
             onPress={() => setDayOffset(offset)}
           >
-            <Text style={[
-              styles.headerButtonText,
-              dayOffset === offset && styles.headerButtonTextActive
-            ]}>
+            <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
               {label}
             </Text>
           </TouchableOpacity>
@@ -79,7 +98,9 @@ export default function MatchesScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header/>
+      <StatusBar backgroundColor="#fff" barStyle="dark-content" />
+      <AppBar />
+      <TabBar />
 
       <SectionList
         sections={sections}
@@ -102,16 +123,18 @@ export default function MatchesScreen() {
             No matches available
           </Text>
         }
+        contentContainerStyle={{ padding: 16 }}
       />
     </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: '#fff' },
 
   loaderContainer: {
     flex: 1,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -121,31 +144,57 @@ const styles = StyleSheet.create({
     color: '#555'
   },
 
-  headerContainer: {
+  appBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#fff'
+  },
+  logoText: {
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
+  appBarIcons: {
+    flexDirection: 'row'
+  },
+  icon: {
+    marginLeft: 16,
+    color: '#333'
+  },
+
+  tabBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 12,
+    backgroundColor: '#f9f9f9',
     borderBottomWidth: 1,
     borderColor: '#eee'
   },
-  headerButtonText: {
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center'
+  },
+  tabButtonActive: {
+    borderBottomWidth: 2,
+    borderColor: '#007AFF'
+  },
+  tabLabel: {
     fontSize: 16,
     color: '#444'
   },
-  headerButtonTextActive: {
-    fontSize: 16,
+  tabLabelActive: {
     fontWeight: 'bold',
     color: '#007AFF'
   },
 
   sectionHeader: {
-    paddingVertical: 8,
-    alignItems: 'center'        // center all header content
+    marginTop: 24,
+    alignItems: 'center'
   },
   sectionHeaderText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center'
+    fontWeight: 'bold'
   },
   noDataText: {
     marginTop: 4,
