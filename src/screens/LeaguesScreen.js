@@ -41,7 +41,7 @@ export default function LeaguesScreen() {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size={25} color={'#4CAF50'} />
-        <Text style={styles.loadingText}>Loading Data...</Text>
+        <Text style={styles.loadingText}>Loading leagues</Text>
       </View>
     )
   }
