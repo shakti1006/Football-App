@@ -24,8 +24,8 @@ export default function MatchesScreen() {
   }, [dateStr])
 
   // 3) (Optional) Debug
-  console.log('FOLLOWED IDs:', followed)
-  console.log('MATCH LEAGUE IDs:', (matchesByDate[dateStr] || []).map(m => m.league.id))
+  // console.log('FOLLOWED IDs:', followed)
+  // console.log('MATCH LEAGUE IDs:', (matchesByDate[dateStr] || []).map(m => m.league.id))
 
   const allMatches       = matchesByDate[dateStr] || []
   const followingMatches = allMatches.filter(m => followed.includes(m.league.id))

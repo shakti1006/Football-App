@@ -39,7 +39,7 @@ const leaguesSlice = createSlice({
             state.status = 'succeeded'
         })
         .addCase(loadFollowed.fulfilled, (state, action) => {
-        state.followed = (action.payload || [])
+            state.followed = (action.payload || [])
             .filter(id => typeof id === 'number')
         })
 
