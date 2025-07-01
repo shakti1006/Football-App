@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  StyleSheet
+  StyleSheet,
+  ActivityIndicator
 } from 'react-native'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { useDispatch, useSelector } from 'react-redux'
@@ -17,19 +18,33 @@ import {
 } from '../features/leagues/leaguesSlice'
 
 export default function LeaguesScreen() {
-  const dispatch    = useDispatch()
-  const allEntries  = useSelector(s => s.leagues.all)       // raw API objects
+  const dispatch = useDispatch()
+  const allEntries = useSelector(s => s.leagues.all)       // raw API objects
   const followedIds = useSelector(s => s.leagues.followed)  // [39,61,…]
 
-  const [isEditing,     setIsEditing]     = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [isEditing, setIsEditing] = useState(false)
   const [showSuggested, setShowSuggested] = useState(true)
   const [expandedGroups, setExpandedGroups] = useState({})
 
   // 1. Load data on mount
   useEffect(() => {
-    dispatch(loadFollowed())
-    dispatch(fetchLeagues())
+    setLoading(true)
+    Promise.all([
+      dispatch(loadFollowed()),
+      dispatch(fetchLeagues())
+    ]).finally(() => setLoading(false))
   }, [])
+
+  // Show loader until data arrives
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size={25} color={'#4CAF50'} />
+        <Text style={styles.loadingText}>Loading Data...</Text>
+      </View>
+    )
+  }
 
   // 2. Build Following & Suggested lists
   const following = allEntries
@@ -211,6 +226,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f1f1f1'
+  },
+   loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#555'
   },
   card: {
     backgroundColor: '#fff',
